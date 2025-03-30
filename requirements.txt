@@ -1,0 +1,4 @@
+streamlit
+hl7
+pandas
+numpy  # Required as pandas depends on it
