@@ -372,7 +372,7 @@ def display_message_diff(messages_deidentified_message, raw_message):
     col1, col2 = st.columns(2)
     
     with col1:
-        st.write("#### messages_deidentified Message")
+        st.write("#### Fixed Message")
         for line in messages_deidentified_lines:
             if line.strip():
                 st.code(line, language=None)
@@ -449,7 +449,7 @@ def main():
         current_page_df = filtered_df.iloc[start_idx:end_idx]
 
         # Display dataframe with all columns including the messages_deidentified message
-        display_cols = ["Message Control ID", "MRN", "Last Name", "First Name", "Birthdate", "messages_deidentified Message"]
+        display_cols = ["Message Control ID", "MRN", "Last Name", "First Name", "Birthdate", "Fixed Message"]
         st.dataframe(current_page_df[display_cols], use_container_width=True)
 
         # Message selection - moved above the output section but below the main table
@@ -464,7 +464,7 @@ def main():
             
             with tab1:
                 # Details view
-                st.write(f"### messages_deidentified Message Details")
+                st.write(f"### Fixed Message Details")
                 display_message_details(filtered_df.loc[selected_index, "messages_deidentified Message"])
                 st.write(f"### Raw Message Details")
                 display_message_details(filtered_df.loc[selected_index, "Raw Message"])
@@ -472,14 +472,14 @@ def main():
             with tab2:
                 # Comparison view
                 display_message_diff(
-                    filtered_df.loc[selected_index, "messages_deidentified Message"],
+                    filtered_df.loc[selected_index, "Fixed Message"],
                     filtered_df.loc[selected_index, "Raw Message"]
                 )
             
             with tab3:
                 # Raw Data view
-                st.write("### messages_deidentified Message (Raw Text)")
-                st.text_area("messages_deidentified Message", filtered_df.loc[selected_index, "messages_deidentified Message"], height=200)
+                st.write("### Fixed Message (Raw Text)")
+                st.text_area("Fixed Message", filtered_df.loc[selected_index, "Fixed Message"], height=200)
                 st.write("### Raw Message (Raw Text)")
                 st.text_area("Raw Message", filtered_df.loc[selected_index, "Raw Message"], height=200)
     else:
