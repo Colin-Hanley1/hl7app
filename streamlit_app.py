@@ -4,28 +4,28 @@ import pandas as pd
 import math
 import os
 
-# Function to parse HL7 messages from fixed.txt and raw.txt
+# Function to parse HL7 messages from messages_deidentified.txt and raw.txt
 def parse_hl7_messages():
     try:
         # Check if files exist before opening
-        if not os.path.exists("fixed.txt") or not os.path.exists("raw.txt"):
+        if not os.path.exists("messages_deidentified.txt") or not os.path.exists("raw.txt"):
             missing_files = []
-            if not os.path.exists("fixed.txt"):
-                missing_files.append("fixed.txt")
+            if not os.path.exists("messages_deidentified.txt"):
+                missing_files.append("messages_deidentified.txt")
             if not os.path.exists("raw.txt"):
                 missing_files.append("raw.txt")
             st.error(f"Error: {', '.join(missing_files)} file(s) not found. Please place the file(s) in the same directory as this script.")
             return pd.DataFrame()
         
-        with open("fixed.txt", "r", encoding="utf-8") as file:
-            fixed_data = file.read()
+        with open("messages_deidentified.txt", "r", encoding="utf-8") as file:
+            messages_deidentified_data = file.read()
         with open("raw.txt", "r", encoding="utf-8") as file:
             raw_data = file.read()
         
         # Split the data by MSH| markers
-        fixed_messages = [
+        messages_deidentified_messages = [
             "MSH|" + msg.strip().replace('\n', '\r')
-            for msg in fixed_data.split('MSH|') if msg.strip()
+            for msg in messages_deidentified_data.split('MSH|') if msg.strip()
         ]
         raw_messages = [
             "MSH|" + msg.strip().replace('\n', '\r')
@@ -33,11 +33,11 @@ def parse_hl7_messages():
         ]
         
         # Validate message counts
-        if len(fixed_messages) != len(raw_messages):
-            st.warning(f"Warning: Number of messages in fixed.txt ({len(fixed_messages)}) does not match raw.txt ({len(raw_messages)}). Some messages may be misaligned.")
+        if len(messages_deidentified_messages) != len(raw_messages):
+            st.warning(f"Warning: Number of messages in messages_deidentified.txt ({len(messages_deidentified_messages)}) does not match raw.txt ({len(raw_messages)}). Some messages may be misaligned.")
         
         parsed_messages = []
-        for idx, message in enumerate(fixed_messages):
+        for idx, message in enumerate(messages_deidentified_messages):
             # Ensure we don't go out of bounds
             current_raw_message = raw_messages[idx] if idx < len(raw_messages) else "Raw message not available"
             
@@ -75,7 +75,7 @@ def parse_hl7_messages():
                     "Last Name": lname, 
                     "First Name": fname, 
                     "Birthdate": birthdate, 
-                    "Fixed Message": message, 
+                    "messages_deidentified Message": message, 
                     "Raw Message": current_raw_message
                 })
             except Exception as e:
@@ -87,7 +87,7 @@ def parse_hl7_messages():
                     "Last Name": "ERROR", 
                     "First Name": "ERROR", 
                     "Birthdate": "ERROR", 
-                    "Fixed Message": message, 
+                    "messages_deidentified Message": message, 
                     "Raw Message": current_raw_message
                 })
         
@@ -345,7 +345,7 @@ def render_line_with_dropdown(line):
 </div>"""
     return html
 
-# Display each line of the message (Fixed or Raw) as its own compact box.
+# Display each line of the message (messages_deidentified or Raw) as its own compact box.
 def display_message_details(message_text):
     if not message_text or message_text == "Raw message not available":
         st.info("No message data available")
@@ -357,23 +357,23 @@ def display_message_details(message_text):
             box_html = render_line_with_dropdown(line)
             st.markdown(box_html, unsafe_allow_html=True)
 
-# Function to display differences between fixed and raw messages
-def display_message_diff(fixed_message, raw_message):
+# Function to display differences between messages_deidentified and raw messages
+def display_message_diff(messages_deidentified_message, raw_message):
     st.write("### Message Comparison")
     
-    if fixed_message == "Raw message not available" or raw_message == "Raw message not available":
+    if messages_deidentified_message == "Raw message not available" or raw_message == "Raw message not available":
         st.warning("Cannot compare messages - one or both messages are not available")
         return
         
-    fixed_lines = fixed_message.replace('\r', '\n').split("\n")
+    messages_deidentified_lines = messages_deidentified_message.replace('\r', '\n').split("\n")
     raw_lines = raw_message.replace('\r', '\n').split("\n")
     
     # Create side-by-side columns
     col1, col2 = st.columns(2)
     
     with col1:
-        st.write("#### Fixed Message")
-        for line in fixed_lines:
+        st.write("#### messages_deidentified Message")
+        for line in messages_deidentified_lines:
             if line.strip():
                 st.code(line, language=None)
     
@@ -389,7 +389,7 @@ def main():
     
     st.title("HL7 Message Viewer")
     
-    # Fixed items per page
+    # messages_deidentified items per page
     items_per_page = 50
     
     # Process data
@@ -448,8 +448,8 @@ def main():
         end_idx = start_idx + items_per_page
         current_page_df = filtered_df.iloc[start_idx:end_idx]
 
-        # Display dataframe with all columns including the fixed message
-        display_cols = ["Message Control ID", "MRN", "Last Name", "First Name", "Birthdate", "Fixed Message"]
+        # Display dataframe with all columns including the messages_deidentified message
+        display_cols = ["Message Control ID", "MRN", "Last Name", "First Name", "Birthdate", "messages_deidentified Message"]
         st.dataframe(current_page_df[display_cols], use_container_width=True)
 
         # Message selection - moved above the output section but below the main table
@@ -464,26 +464,26 @@ def main():
             
             with tab1:
                 # Details view
-                st.write(f"### Fixed Message Details")
-                display_message_details(filtered_df.loc[selected_index, "Fixed Message"])
+                st.write(f"### messages_deidentified Message Details")
+                display_message_details(filtered_df.loc[selected_index, "messages_deidentified Message"])
                 st.write(f"### Raw Message Details")
                 display_message_details(filtered_df.loc[selected_index, "Raw Message"])
             
             with tab2:
                 # Comparison view
                 display_message_diff(
-                    filtered_df.loc[selected_index, "Fixed Message"],
+                    filtered_df.loc[selected_index, "messages_deidentified Message"],
                     filtered_df.loc[selected_index, "Raw Message"]
                 )
             
             with tab3:
                 # Raw Data view
-                st.write("### Fixed Message (Raw Text)")
-                st.text_area("Fixed Message", filtered_df.loc[selected_index, "Fixed Message"], height=200)
+                st.write("### messages_deidentified Message (Raw Text)")
+                st.text_area("messages_deidentified Message", filtered_df.loc[selected_index, "messages_deidentified Message"], height=200)
                 st.write("### Raw Message (Raw Text)")
                 st.text_area("Raw Message", filtered_df.loc[selected_index, "Raw Message"], height=200)
     else:
-        st.info("No messages to display. Please check your HL7 files (fixed.txt and raw.txt).")
+        st.info("No messages to display. Please check your HL7 files (messages_deidentified.txt and raw.txt).")
 
 if __name__ == "__main__":
     main()
